@@ -1,0 +1,88 @@
+---
+# defaults file for nagios
+
+# Directory that will be used as the location for the downloads§
+download_dir: "{{ ansible_env.HOME }}/nagios"
+
+nagios_version: 4.4.5
+# Define the download url for the Nagios Core source files and the version you want to use.
+nagiosurl: "https://assets.nagios.com/downloads/nagioscore/releases/nagios-{{ nagios_version }}.tar.gz"
+
+# This is the directory where the Nagios source files will be placed, this should be
+# the directory which is created when the download file is unpacked when runnint
+# tar -xzvf nagios-4.3.2.tar.gz
+# code checked http://mathias-kettner.com/check_mk_download_source.html for version of mk-livestatus 1.2.8p22
+nagiossrc: "nagios-{{ nagios_version }}"
+
+# Define the download url for the Plugins and the version you want to use.
+pluginssrc: nagios-plugins-2.4.3
+pluginsurl: http://nagios-plugins.org/download/{{ pluginssrc }}.tar.gz
+# This is the directory where the Plugin source files will be placed, this should be
+# the directory which is created when the download file is unpacked when runnint
+# tar -xzvf nagios-plugins-2.2.1.tar.gz
+
+monitoring_user: nagios
+monitoring_command_group: nagcmd
+
+# This is a list of users allowed to login to the nagios web frontend
+nagios_users:
+  - user: nagiosadmin
+    pass: password
+
+# This option will be used if you want to uninstall debian packages for nagios and check-mk-livestatus
+ansible_role_nagios_remove_packages: false
+
+# mk-livestatus part
+# https://download.checkmk.com/checkmk/1.5.0p25/mk-livestatus-1.5.0p25.tar.gz
+mk_livestatus_version: "1.5.0p25"
+mklivestatussrc: "mk-livestatus-{{ mk_livestatus_version }}"
+mk_livestatus_version_url: "https://download.checkmk.com/checkmk/{{ mk_livestatus_version }}/{{ mklivestatussrc }}.tar.gz"
+python_passlib: "python3-passlib"
+python_urllib: "python3-urllib3"
+python_apt: "python3-apt"
+php_mysql: "php-mysql"
+MK_LIVESTATUS_prerequisites_package:
+  - rrdtool
+  - librrd-dev
+  - librrd8
+  - libboost-dev
+  - libboost-system-dev
+
+nagiosql_version: 3.4.1
+nagiosqlurl: "https://sourceforge.net/projects/nagiosql/files/nagiosql/NagiosQL%20{{ nagiosql_version }}/nagiosql-{{ nagiosql_version }}-git2020-01-19.tar.gz"
+
+nagiosQL_prerequisites_package:
+  - "{{ libssh_package }}"
+  - "{{ libssh_package_dev }}"
+  - "{{ php_mysql }}"
+  - php-pear
+  - "{{ php_dev }}"
+  # - "{{ php_ssh2 }}"
+  - "{{ php_gettext }}"
+  - "{{ mysql_packages }}"
+  - "{{ python_mysql }}"
+  # - default-libmysqlclient-dev
+
+apache_DocumentRoot: "/var/www/html"
+mysql_service: mysql
+mysql_state: started
+mysql_enabled: yes
+mysql_config_file: /etc/my.cnf
+mysql_root_home: /root
+mysql_root_username: root
+mysql_root_password: 'password'
+mysql_nagiosql_user: 'nagiosql_user'
+mysql_nagiosql_password: 'password'
+mysql_root_password_update: false
+# db_nagiosql_version: 341
+db_nagiosql_version: "{{''.join(nagiosql_version.split('.') ) }}"
+mysql_databases:
+  - name: "db_nagiosql_v{{ db_nagiosql_version }}"
+    collation: utf8_general_ci
+    encoding: utf8
+
+mysql_users:
+  - name: "{{ mysql_nagiosql_user }}"
+    host: "localhost"
+    password: "{{ mysql_nagiosql_password }}"
+    priv: "db_nagiosql_v{{ db_nagiosql_version }}.*:ALL,GRANT"

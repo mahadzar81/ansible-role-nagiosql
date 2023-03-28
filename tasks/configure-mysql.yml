@@ -1,0 +1,119 @@
+---
+- name: Ensure MYSQL has selected state and enabled on boot.
+  service:
+    name: "{{ mysql_service }}"
+    state: "{{ mysql_state }}"
+    enabled: "{{ mysql_enabled }}"
+
+- name: Get MySQL version.
+  command: 'mysql --version'
+  register: mysql_cli_version
+  changed_when: false
+  check_mode: false
+
+- name: Get list of hosts for the root user.
+  command: mysql -NBe
+    "SELECT Host
+    FROM mysql.user
+    WHERE User = '{{ mysql_root_username }}'
+    ORDER BY (Host='localhost') ASC"
+  register: mysql_root_hosts
+  changed_when: false
+  check_mode: false
+  when: nagiosQL_installed is defined
+
+# Note: We do not use mysql_user for this operation, as it doesn't always update
+# the root password correctly. See: https://goo.gl/MSOejW
+# Set root password for MySQL >= 5.7.x.
+- name: Update MySQL root password for localhost root account (5.7.x).
+  shell: >
+    mysql -u root -NBe
+    "ALTER USER '{{ mysql_root_username }}'@'{{ item }}'
+     IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}'; FLUSH PRIVILEGES;"
+  with_items: "{{ mysql_root_hosts.stdout_lines|default([]) }}"
+  when: >
+    ((nagiosQL_installed.changed) or mysql_root_password_update)
+    and ('5.7.' in mysql_cli_version.stdout or '8.0.' in mysql_cli_version.stdout)
+# Set root password for MySQL < 5.7.x.
+- name: Update MySQL root password for localhost root account (< 5.7.x).
+  shell: >
+    mysql -NBe
+    'SET PASSWORD FOR "{{ mysql_root_username }}"@"{{ item }}" = PASSWORD("{{ mysql_root_password }}"); FLUSH PRIVILEGES;'
+  with_items: "{{ mysql_root_hosts.stdout_lines|default([]) }}"
+  when: >
+    ((nagiosQL_installed.changed) or mysql_root_password_update)
+    and ('5.7.' not in mysql_cli_version.stdout and '8.0.' not in mysql_cli_version.stdout)
+
+- name: Create .my.cnf
+  template:
+    src: "templates/my.cnf.j2"
+    dest: "{{ mysql_root_home }}/.my.cnf"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Ensure MySQL databases are present.
+  mysql_db:
+    name: "{{ item.name }}"
+    collation: "{{ item.collation | default('utf8_general_ci') }}"
+    encoding: "{{ item.encoding | default('utf8') }}"
+    state: "{{ item.state | default('present') }}"
+    target: "{{ item.target | default(omit) }}"
+  with_items: "{{ mysql_databases }}"
+
+- name: Ensure MySQL users are present.
+  mysql_user:
+    name: "{{ item.name }}"
+    host: "{{ item.host | default('localhost') }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.priv | default('*.*:USAGE') }}"
+    state: "{{ item.state | default('present') }}"
+    append_privs: "{{ item.append_privs | default('no') }}"
+    encrypted: "{{ item.encrypted | default('no') }}"
+  with_items: "{{ mysql_users }}"
+  no_log: false
+
+- name: Restore database
+  mysql_db:
+    name: "db_nagiosql_v{{ db_nagiosql_version }}"
+    state: import
+    target: "{{ apache_DocumentRoot }}/webadmin/install/sql/nagiosQL_v{{ db_nagiosql_version }}_db_mysql.sql"
+    login_user: "{{ mysql_root_username }}"
+    login_password: "{{ mysql_root_password }}"
+  when: nagiosQL_installed.changed
+
+- name: Import import_nagios_sample.sql
+  mysql_db:
+    name: "db_nagiosql_v{{ db_nagiosql_version }}"
+    state: import
+    target: "{{ apache_DocumentRoot }}/webadmin/install/sql/import_nagios_sample.sql"
+    login_user: "{{ mysql_root_username }}"
+    login_password: "{{ mysql_root_password }}"
+  when: nagiosQL_installed.changed
+
+- name: Import tbl_settings.sql
+  mysql_db:
+    name: "db_nagiosql_v{{ db_nagiosql_version }}"
+    state: import
+    target: "{{ apache_DocumentRoot }}/webadmin/install/sql/tbl_settings.sql"
+    login_user: "{{ mysql_root_username }}"
+    login_password: "{{ mysql_root_password }}"
+  when: nagiosQL_installed.changed
+
+- name: Import tbl_user.sql
+  mysql_db:
+    name: "db_nagiosql_v{{ db_nagiosql_version }}"
+    state: import
+    target: "{{ apache_DocumentRoot }}/webadmin/install/sql/tbl_user.sql"
+    login_user: "{{ mysql_root_username }}"
+    login_password: "{{ mysql_root_password }}"
+  when: nagiosQL_installed.changed
+
+- name: Import tbl_configtarget.sql
+  mysql_db:
+    name: "db_nagiosql_v{{ db_nagiosql_version }}"
+    state: import
+    target: "{{ apache_DocumentRoot }}/webadmin/install/sql/tbl_configtarget.sql"
+    login_user: "{{ mysql_root_username }}"
+    login_password: "{{ mysql_root_password }}"
+  when: nagiosQL_installed.changed

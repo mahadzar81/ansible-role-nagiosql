@@ -1,0 +1,21 @@
+---
+# tasks file for nagios
+
+- include: load-variables.yml
+- include: "setup-RedHat-family-prerequisites.yml"
+  when: ansible_os_family == 'RedHat'
+
+- include: setup-Debian-family-prerequisites.yml
+  when: ansible_os_family == 'Debian'
+
+- name: Check if nagios packages were installed.
+  set_fact:
+    nagios_install_packages: "{{ deb_nagios_installed is defined or el_nagios_installed is defined}}"
+- include: build-nagios.yml
+- include: build-plugins.yml
+- include: build-mk-livestatus.yml
+- include: build-nagiosql.yml
+- include: configure-mysql.yml
+
+- name: http service state
+  service: name={{ apache_service }} state=started enabled=yes

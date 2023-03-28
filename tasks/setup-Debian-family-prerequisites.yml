@@ -1,0 +1,66 @@
+---
+
+- name: Update repositories cache
+  apt:
+    update_cache: yes
+
+- name: Install  dependencies (Debian).
+  package:
+    name:
+      - gnupg2
+    state: latest
+
+- name: Add labs.consol Key
+  apt_key:
+    url: "https://labs.consol.de/repo/stable/RPM-GPG-KEY"
+    state: present
+
+- name: Add labs.consol Repository
+  apt_repository:
+    repo: "deb http://labs.consol.de/repo/stable/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: yes
+
+- name: Install Apache2
+  package:
+    name:
+      - apache2
+      - php-gd
+      - libapache2-mod-php
+      - unzip
+    state: latest
+  register: deb_nagios_installed
+
+- name: Install Nagios prerequisites for Ubuntu/Debian
+  package:
+    name:
+      - build-essential
+      - "{{ python_passlib }}"
+    state: latest
+
+- name: setup-Debian | Remove Nagios3
+  package:
+    name:
+      - nagios3
+      - nagios3-core
+    state: absent
+  when: ansible_role_nagios_remove_packages
+
+- name: Install Plugin prerequisites for Debian family
+  package:
+    name:
+      - libssl-dev
+      - dnsutils
+      - fping
+      - libldap2-dev
+      - libpq-dev
+      - smbclient
+      - gawk
+      - telnet
+
+- name: Install ansible prerequisites for Debian family
+  package:
+    name:
+      - "{{ python_urllib }}"  # fix SSL error when using ansible module get_url https://github.com/ansible/ansible/issues/23642
+      - "{{ python_apt }}"
+    state: latest

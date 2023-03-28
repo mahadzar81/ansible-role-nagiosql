@@ -1,0 +1,36 @@
+---
+- name: Install Prerequisites for MK_LIVESTATUS
+  package:
+    name: "{{ MK_LIVESTATUS_prerequisites_package }}"
+    state: latest
+
+- name: Get mk-livestatus
+  get_url: url={{ mk_livestatus_version_url }} dest={{ download_dir }}/{{ mklivestatussrc }}.tar.gz
+
+- name: Unpack mk-livestatus source files
+  shell: cd {{ download_dir }} && tar -xzvf {{ mklivestatussrc }}.tar.gz creates={{ download_dir }}/{{ mklivestatussrc }}
+
+- name: Configure mk-livestatus for nagios, compile and install
+  shell: cd {{ download_dir }}/{{ mklivestatussrc }} && ./configure --with-nagios4 --prefix=/usr/local/nagios && make install creates=/usr/local/nagios/lib/mk-livestatus/livestatus.o
+
+- name: configure the broker_module
+  replace:
+    path: /usr/local/nagios/etc/nagios.cfg
+    regexp: '#broker_module=/somewhere/module2.o arg1 arg2=3 debug=0'
+    replace: 'broker_module=/usr/local/nagios/lib/mk-livestatus/livestatus.o /usr/local/nagios/var/rw/livestatus'
+
+- name: Install xinetd package
+  package:
+    name:
+      - xinetd
+    state: latest
+
+- name: Create /etc/xinetd.d/livestatus
+  template:
+    src: "templates/livestatus.j2"
+    dest: "/etc/xinetd.d/livestatus"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart xinetd

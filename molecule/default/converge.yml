@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include NagiosQL roles"
+      include_role:
+        name: "ansible-role-nagiosql"

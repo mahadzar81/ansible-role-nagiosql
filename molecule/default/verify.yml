@@ -1,0 +1,31 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    expected_nagios_content: "Nagios Core"
+    expected_nagiosql_content: "NagiosQL System Monitoring Administration Tool"
+  tasks:
+    - name: Get index.html
+      uri:
+        url: http://localhost/nagios/
+        user: "nagiosadmin"
+        password: "password"
+        force_basic_auth: yes
+        return_content: yes
+      register: this
+      failed_when: "expected_nagios_content not in this.content"
+
+    - name: Get index.html
+      uri:
+        url: http://localhost/webadmin/
+        return_content: yes
+      register: this
+      failed_when: "expected_nagiosql_content not in this.content"
+
+    - name: Ensure content type is text/html
+      assert:
+        that:
+          - "'text/html' in this.content_type"

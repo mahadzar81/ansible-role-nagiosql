@@ -1,0 +1,7 @@
+---
+- name: "Provision Nagios and NagiosQL server"
+  hosts: all
+  gather_facts: yes
+  become: true
+  roles:
+    - {role: ansible-role-nagiosql}

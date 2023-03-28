@@ -1,0 +1,28 @@
+---
+with_httpd_conf: /etc/httpd/conf.d
+apache_service: httpd
+apache_daemon: httpd
+apache_daemon_path: /usr/sbin/
+apache_server_root: /etc/httpd
+apache_run_user: "apache"
+apache_run_group: "apache"
+apache_DocumentRoot: "/var/www/html"
+mysql_packages: "mariadb-server"
+mk_livestatus_version: "1.4.0p38"
+mklivestatussrc: "mk-livestatus-{{ mk_livestatus_version }}"
+python_passlib: "python3-passlib"
+python_mysql: "python3-mysql"
+php_gettext: "php-gettext"
+php_ssh2: "php-ssh2"
+php_dev: "php-devel"
+php_mysql: "php-mysqlnd"
+libssh_package: "libssh2"
+libssh_package_dev: "libssh2-devel"
+mysql_service: "mariadb"
+MK_LIVESTATUS_prerequisites_package:
+  - glibc-static
+  - libstdc++-static
+  - make
+  - rrdtool
+  - rrdtool-devel
+  - boost-devel

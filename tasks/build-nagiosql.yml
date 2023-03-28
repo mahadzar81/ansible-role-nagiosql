@@ -1,0 +1,184 @@
+---
+
+- name: Install Prerequisites for nagiosQL
+  package:
+    name: "{{ nagiosQL_prerequisites_package }}"
+    state: latest
+  register: nagiosQL_installed
+
+- name: download NagiosQL archieve file
+  get_url:
+    url: "{{ nagiosqlurl }}"
+    dest: "/tmp/{{ nagiosql_version }}.tar.gz"
+    timeout: 30
+
+- name: Unpack NagiosQL source files
+  unarchive:
+    src: "/tmp/{{ nagiosql_version }}.tar.gz"
+    dest: "{{ apache_DocumentRoot }}"
+    creates: "{{ apache_DocumentRoot }}/webadmin/index.php"
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+    remote_src: yes
+
+- name: Rename directory
+  command: mv nagiosql-{{ nagiosql_version }} webadmin creates={{ apache_DocumentRoot }}/webadmin/index.php
+  args:
+    # chdir: /usr/local/nagios/share/
+    chdir: "{{ apache_DocumentRoot }}"
+  notify:
+    - restart apache
+
+- name: Set file ownership for nagiosql properly
+  file:
+    path: "{{ apache_DocumentRoot }}/webadmin"
+    state: directory
+    recurse: yes
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create a nagiosql directory if it does not exist
+  file:
+    path: /usr/local/nagiosql
+    state: directory
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create a nagiosql directory hosts if it does not exist
+  file:
+    path: /usr/local/nagiosql/hosts
+    state: directory
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create a nagiosql directory services if it does not exist
+  file:
+    path: /usr/local/nagiosql/services
+    state: directory
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create a nagiosql directory services if it does not exist
+  file:
+    path: /usr/local/nagiosql/backup
+    state: directory
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create a nagiosql directory services if it does not exist
+  file:
+    path: /usr/local/nagiosql/backup/hosts
+    state: directory
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create a nagiosql directory services if it does not exist
+  file:
+    path: /usr/local/nagiosql/backup/services
+    state: directory
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+# https://linoxide.com/monitoring-2/install-nagiosql-gui-interface-configure-nagios-core/
+
+- name: Change Nagios main configuration files to giveproper permission to  NagiosQL plugin
+  file:
+    path: /usr/local/nagios/
+    state: directory
+    owner: nagios
+    group: "{{ apache_run_group }}"
+    mode: '0775'
+
+- name: Change Nagios main configuration files to giveproper permission to  NagiosQL plugin
+  file:
+    path: /usr/local/nagios/etc/
+    state: directory
+    owner: nagios
+    group: "{{ apache_run_group }}"
+    mode: '0775'
+
+# - name: Change nagios.cfg files to giveproper permission to  NagiosQL plugin
+#   file:
+#     path: /usr/local/nagios/etc/nagios.cfg
+#     owner: nagios
+#     group: "{{ apache_run_group }}"
+#     mode: '0664'
+
+- name: Change cgi.cfg files to giveproper permission to  NagiosQL plugin
+  file:
+    path: /usr/local/nagios/etc/cgi.cfg
+    owner: nagios
+    group: "{{ apache_run_group }}"
+    mode: '0664'
+
+- name: Change resource.cfg files to giveproper permission to  NagiosQL plugin
+  file:
+    path: /usr/local/nagios/etc/resource.cfg
+    owner: nagios
+    group: "{{ apache_run_group }}"
+    mode: '0664'
+
+- name: The Nagios binary must be executable by the Apache user
+  file:
+    path: /usr/local/nagios/bin/nagios
+    owner: nagios
+    group: "{{ apache_run_group }}"
+    mode: '0750'
+
+- name: Copy nagios config to nagiosql directory
+  copy:
+    src: /usr/local/nagios/etc
+    dest: /usr/local/nagiosql/
+    remote_src: yes
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+    force: no
+
+- name: Create config/settings.php
+  template:
+    src: "templates/settings.php.j2"
+    dest: "{{ apache_DocumentRoot }}/webadmin/config/settings.php"
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Edit Nagios Core Configuration File
+  template:
+    src: "templates/nagios.cfg.j2"
+    dest: "/usr/local/nagios/etc/nagios.cfg"
+    owner: nagios
+    group: "{{ apache_run_group }}"
+    mode: '0775'
+
+- name: Create files for tbl_settings.sql to be import later on
+  template:
+    src: "templates/tbl_settings.sql.j2"
+    dest: "{{ apache_DocumentRoot }}/webadmin/install/sql/tbl_settings.sql"
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create files for tbl_user.sql to be import later on
+  template:
+    src: "templates/tbl_user.sql.j2"
+    dest: "{{ apache_DocumentRoot }}/webadmin/install/sql/tbl_user.sql"
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+
+- name: Create files for tbl_configtarget.sql to be import later on
+  template:
+    src: "templates/tbl_configtarget.sql.j2"
+    dest: "{{ apache_DocumentRoot }}/webadmin/install/sql/tbl_configtarget.sql"
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'

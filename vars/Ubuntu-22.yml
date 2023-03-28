@@ -1,0 +1,25 @@
+---
+with_httpd_conf: /etc/apache2/sites-enabled
+apache_run_user: "www-data"
+apache_run_group: "www-data"
+apache_DocumentRoot: "/var/www/html"
+gnupg_package: gnupg2
+mk_livestatus_version: "1.5.0p25"
+mysql_packages: "mariadb-server"
+mklivestatussrc: "mk-livestatus-{{ mk_livestatus_version }}"
+python_urllib: "python3-urllib3"
+python_apt: "python3-apt"
+python_passlib: "python3-passlib"
+python_mysql: "python3-mysqldb"
+php_gettext: "php-php-gettext"
+php_ssh2: "php-ssh2"
+php_dev: "php-dev"
+libssh_package: "libssh2-1"
+libssh_package_dev: "libssh2-1-dev"
+nagios_version: 4.4.10
+MK_LIVESTATUS_prerequisites_package:
+  - rrdtool
+  - librrd-dev
+  - librrd8
+  - libboost-dev
+  - libboost-system-dev
