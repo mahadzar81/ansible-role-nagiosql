@@ -2,7 +2,7 @@
 dependencies: []
 
 galaxy_info:
-  role_name: NagiosQL
+  role_name: nagiosql
   namespace: "mahadzar81"
   author: Mahadzar
   description: Install NagiosQL server for RHEL/CentOS and Debian/Ubuntu.
