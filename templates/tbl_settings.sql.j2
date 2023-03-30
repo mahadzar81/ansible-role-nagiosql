@@ -38,7 +38,7 @@ CREATE TABLE `tbl_settings` (
 
 LOCK TABLES `tbl_settings` WRITE;
 /*!40000 ALTER TABLE `tbl_settings` DISABLE KEYS */;
-INSERT INTO `tbl_settings` VALUES (1,'db','version','3.4.1'),(2,'db','type','mysqli'),(3,'path','protocol','http'),(4,'path','tempdir','/tmp'),(5,'path','base_url','/webadmin/'),(6,'path','base_path','/var/www/html/webadmin/'),(7,'data','locale','en_GB'),(8,'data','encoding','utf-8'),(9,'security','logofftime','3600'),(10,'security','wsauth','0'),(11,'common','pagelines','15'),(12,'common','seldisable','1'),(13,'common','tplcheck','0'),(14,'common','updcheck','1'),(15,'network','proxy','0'),(16,'network','proxyserver',''),(17,'network','proxyuser',''),(18,'network','proxypasswd',''),(19,'network','onlineupdate','0'),(20,'performance','parents','1');
+INSERT INTO `tbl_settings` VALUES (1,'db','version','{{ nagiosql_version }}'),(2,'db','type','mysqli'),(3,'path','protocol','http'),(4,'path','tempdir','/tmp'),(5,'path','base_url','/webadmin/'),(6,'path','base_path','/var/www/html/webadmin/'),(7,'data','locale','en_GB'),(8,'data','encoding','utf-8'),(9,'security','logofftime','3600'),(10,'security','wsauth','0'),(11,'common','pagelines','15'),(12,'common','seldisable','1'),(13,'common','tplcheck','0'),(14,'common','updcheck','1'),(15,'network','proxy','0'),(16,'network','proxyserver',''),(17,'network','proxyuser',''),(18,'network','proxypasswd',''),(19,'network','onlineupdate','0'),(20,'performance','parents','1');
 /*!40000 ALTER TABLE `tbl_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -143,6 +143,21 @@
     mode: '0755'
     force: no
 
+- name: get file stat just to check if exists for purpose of nagiosQL-3.5.0 version
+  stat: path=/var/www/html/webadmin/install/sql/nagiosQL_v35_db_mysql.sql
+  register: file
+
+- name: Copy nagiosQL_v35_db_mysql.sql as nagiosQL_v350_db_mysql.sql
+  copy:
+    src: /var/www/html/webadmin/install/sql/nagiosQL_v35_db_mysql.sql
+    dest: "/var/www/html/webadmin/install/sql/nagiosQL_v{{ db_nagiosql_version }}_db_mysql.sql"
+    remote_src: yes
+    owner: "{{ apache_run_user }}"
+    group: "{{ apache_run_group }}"
+    mode: '0755'
+    force: no
+  when: file.stat.exists
+
 - name: Create config/settings.php
   template:
     src: "templates/settings.php.j2"
