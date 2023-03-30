@@ -17,6 +17,8 @@ php_dev: "php-dev"
 libssh_package: "libssh2-1"
 libssh_package_dev: "libssh2-1-dev"
 nagios_version: 4.4.10
+nagiosql_version: 3.5.0
+nagiosqlurl: "https://sourceforge.net/projects/nagiosql/files/nagiosql/NagiosQL%203.5.0%20%28BETA%20release%29/nagiosql-3.5.0-git2023-03-03-beta.tar.gz"
 MK_LIVESTATUS_prerequisites_package:
   - rrdtool
   - librrd-dev
