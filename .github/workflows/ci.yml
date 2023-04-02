@@ -70,7 +70,7 @@ jobs:
             sudo apt-get install apparmor-profiles
             sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
             sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-        if: ${{ startsWith(matrix.distro, 'debian') }}
+        if: ${{ startsWith(matrix.distro, 'debian') && startsWith(matrix.distro, 'ubuntu') }}
 
       - name: Run Molecule tests.
         run: molecule test
